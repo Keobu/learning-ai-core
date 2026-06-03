@@ -26,4 +26,4 @@ private:
     std::string m_cleaned_text;
 };
 
-#endif
+#endif // DOCUMENT_PARSER_HPP

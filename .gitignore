@@ -1,0 +1,25 @@
+build/
+CMakeUserPresets.json
+
+# Compiled Binaries, Objects, and Libraries
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.exe
+*.out
+
+# IDE and Editor Specific Files
+.vscode/
+.idea/
+*.suo
+*.user
+*.VisualXT
+cmake-build-debug/
+cmake-build-release/
+
+# OS Specific Files
+.DS_Store
+Thumbs.db
