@@ -45,3 +45,35 @@ std::vector<std::string_view> DocumentParser::tokenize() const {
 
     return tokens;
 }
+
+std::vector<std::string> DocumentParser::split_sentences() const {
+    std::vector<std::string> sentences;
+    std::string current;
+
+    for (char c : m_raw_text) {
+        // Skip annoying newline characters to keep sentences clean
+        if (c == '\n' || c == '\r') continue;
+
+        current.push_back(c);
+
+        // Split when hitting a proper sentence delimiter
+        if (c == '.' || c == '!' || c == '?') {
+            // Trim leading spaces before storing
+            size_t start = current.find_first_not_of(" \t");
+            if (start != std::string::npos) {
+                sentences.push_back(current.substr(start));
+            }
+            current.clear();
+        }
+    }
+
+    // Safety fallback: if the text didn't end with a punctuation mark, flush the rest
+    if (!current.empty()) {
+        size_t start = current.find_first_not_of(" \t");
+        if (start != std::string::npos) {
+            sentences.push_back(current.substr(start));
+        }
+    }
+
+    return sentences;
+}

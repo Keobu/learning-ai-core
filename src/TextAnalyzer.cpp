@@ -1,6 +1,7 @@
 #include "TextAnalyzer.hpp"
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 TextAnalyzer::TextAnalyzer(std::vector<std::string_view> tokens) 
     : m_tokens(std::move(tokens)) {}
@@ -54,4 +55,59 @@ std::vector<std::pair<std::string, double>> TextAnalyzer::get_top_concepts(size_
     }
 
     return sorted_scores;
+}
+
+double TextAnalyzer::calculate_information_density() const {
+    if (m_tokens.empty()) return 0.0;
+
+    size_t meaningful_words_count = 0;
+
+    // Count how many words are actually carrying core information (length > 3)
+    for (const auto& [word, count] : m_term_counts) {
+        if (word.size() > 3) {
+            meaningful_words_count += count;
+        }
+    }
+
+    // Return the percentage of the text occupied by dense information
+    return (static_cast<double>(meaningful_words_count) / m_tokens.size()) * 100.0;
+}
+
+std::string TextAnalyzer::get_summary_sentence(const std::vector<std::string>& sentences) const {
+    if (sentences.empty()) return "No sentences available for summary.";
+
+    std::string best_sentence;
+    double highest_score = -1.0;
+
+    for (const auto& sentence : sentences) {
+        double sentence_score = 0.0;
+        std::string word;
+        
+        for (char c : sentence) {
+            if (std::isalnum(static_cast<unsigned char>(c))) {
+                word.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c))));
+            } else if (!word.empty()) {
+                auto it = m_tfidf_scores.find(word);
+                if (it != m_tfidf_scores.end()) {
+                    sentence_score += it->second;
+                }
+                word.clear();
+            }
+        }
+        
+        if (!word.empty()) {
+            auto it = m_tfidf_scores.find(word);
+            if (it != m_tfidf_scores.end()) {
+                sentence_score += it->second;
+            }
+        }
+
+        // Pick the sentence that contains the most weighted information
+        if (sentence_score > highest_score) {
+            highest_score = sentence_score;
+            best_sentence = sentence;
+        }
+    }
+
+    return best_sentence;
 }

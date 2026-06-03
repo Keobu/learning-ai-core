@@ -1,36 +1,52 @@
 #include <iostream>
 #include "DocumentParser.hpp"
 #include "TextAnalyzer.hpp"
+#include "ExportEngine.hpp"
 
 int main() {
-    // A sample academic text to test the complete NLP pipeline
     std::string academic_text = 
         "Artificial intelligence is a core pillar of modern computer science. "
         "Modern artificial intelligence systems process vast amounts of data to extract information. "
         "Computer memory stores this data, but artificial intelligence learns patterns from the data itself. "
         "Many developers use algorithms to optimize software performance.";
 
-    std::cout << "Target Document for Analysis ===\n" << academic_text << "\n\n";
+    std::cout << "\n=========================================\n";
+    std::cout << "=== RUNNING UPDATED C++23 NLP PIPELINE ===\n";
+    std::cout << "=========================================\n\n";
 
-    // Initialize the parser and clean the raw text
+    // Parse & Tokenize
     DocumentParser parser(academic_text);
     parser.clean_text();
-    
-    // Tokenize the cleaned text into lightweight string_views
     auto tokens = parser.tokenize();
+    auto sentences = parser.split_sentences();
 
-    // Pass the tokens to the analyzer and run the TF-IDF algorithm
+    // Analyze
     TextAnalyzer analyzer(tokens);
     analyzer.calculate_frequencies();
+    
+    double density = analyzer.calculate_information_density();
+    std::cout << "[ANALYSIS] Text Information Density: " << density << "%\n";
+    if (density > 60.0) {
+        std::cout << "[NOTICE] This text has high cognitive load (dense syntax).\n";
+    }
 
-    // Extract the top 3 core concepts from the text
+    // AI Smart Summary Extraction
+    std::string summary = analyzer.get_summary_sentence(sentences);
+    std::cout << "\n=== AI SMART SUMMARY (Key Sentence) ===\n";
+    std::cout << ">> " << summary << "\n\n";
+
+    // Export Setup
     constexpr size_t top_n_concepts = 3;
     auto top_concepts = analyzer.get_top_concepts(top_n_concepts);
 
-    std::cout << "Extracted Core Concepts (Top " << top_n_concepts << ") ===\n";
-    for (size_t i = 0; i < top_concepts.size(); ++i) {
-        std::cout << i + 1 << ". Concept: \"" << top_concepts[i].first 
-                  << "\" | Statistical Weight: " << top_concepts[i].second << "\n";
+    ExportEngine exporter("AI_Core_Concepts");
+    std::string mermaid_code = exporter.generate_mermaid_mindmap(top_concepts);
+
+    // Save to disk
+    std::string file_name = "output_mindmap.md";
+    if (exporter.save_to_file(file_name, mermaid_code)) {
+        std::cout << "[SUCCESS] Visual mind map generated successfully!\n";
+        std::cout << "[INFO] File saved as: build/" << file_name << "\n";
     }
 
     return 0;
